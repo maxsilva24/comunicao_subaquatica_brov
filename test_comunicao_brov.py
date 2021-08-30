@@ -11,7 +11,7 @@ class Test_Comunicacao(unittest.TestCase):
         profundidade = 10
         resultado= calcula.equacao_mackenzie(temperatura, salinidade, profundidade)
         self.assertEqual(resultado, resutado_esperado, 
-                         msg=f'Resultado {resultado} não é igual ao resultado esperado{resutado_esperado}')
+                         msg=f'Resultado {resultado} não é igual ao resultado esperado {resutado_esperado}')
 
     def test_equacao_mackenzie_validacao(self):
         calcula = CalcularVelocidadeSomAgua()
@@ -36,9 +36,9 @@ class Test_Comunicacao(unittest.TestCase):
         profundidade = 10
         resultado= calcula.equacao_coppens(temperatura, salinidade, profundidade)
         self.assertEqual(resultado, resutado_esperado, 
-                         msg=f'Resultado {resultado} não é igual ao resultado esperado{resutado_esperado}')    
+                         msg=f'Resultado {resultado} não é igual ao resultado esperado {resutado_esperado}')    
     
-    def test_equacao_mackenzie_coppens(self):
+    def test_equacao_coppens_validacao(self):
         calcula = CalcularVelocidadeSomAgua()
         temperatura = 17  #valido 0 a 35°C graus Celsius
         salinidade = 25   #valido 0 a 45 partes por mil
@@ -51,5 +51,30 @@ class Test_Comunicacao(unittest.TestCase):
                           calcula.equacao_coppens, temperatura, -10, profundidade)
         # profundidade 
         self.assertRaises(Exception,                          
-                          calcula.equacao_coppens, temperatura, salinidade, 5000000)                
+                          calcula.equacao_coppens, temperatura, salinidade, 5000000)    
+
+    def test_equacao_unesco(self):
+        calcula = CalcularVelocidadeSomAgua()
+        resutado_esperado = 1473.9654897172309
+        temperatura = 9
+        salinidade = 25
+        pressao = 10
+        resultado= calcula.equacao_unesco(temperatura, salinidade, pressao)
+        self.assertEqual(resultado, resutado_esperado, 
+                         msg=f'Resultado {resultado} não é igual ao resultado esperado {resutado_esperado}')             
+
+    def test_equacao_unesco_validacao(self):
+        calcula = CalcularVelocidadeSomAgua()
+        temperatura = 17  #valido 0 a 40°C graus Celsius
+        salinidade = 25   #valido 0 a 40 partes por mil
+        pressao = 10 #valido (0 a 100000 Kpa)
+        #temperatura
+        self.assertRaises(Exception,                          
+                          calcula.equacao_unesco, 45, salinidade, pressao)
+        # salinidade
+        self.assertRaises(Exception,                          
+                          calcula.equacao_unesco, temperatura, -10, pressao)
+        # profundidade 
+        self.assertRaises(Exception,                          
+                          calcula.equacao_unesco, temperatura, salinidade, -5000000)   
        
