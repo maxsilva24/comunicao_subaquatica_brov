@@ -50,6 +50,49 @@ class CalcularVelocidadeSomAgua():
         #
         return resultado_equacao
 
+    def equacao_coppens(self, temperatura, salinidade, profundidade):
+        """
+            A equação para a velocidade do som na água do mar em função da temperatura, 
+            salinidade e profundidade é dada pela equação de Coppens (1981).
+            link: http://resource.npl.co.uk/acoustics/techguides/soundseawater/underlying-phys.html#up_coppens
+        Args:
+            temperatura (float): temperatura em graus Celsius (0 a 35°C)
+            salinidade (float): salinidade em partes por mil  (0 a 45)
+            profundidade (float): profundidade em metros      (0 a 4000)
+        Returns
+            velocidade_som(float): Velocidade do som na agua             
+        """
+        temperatura = float(temperatura)/10  #T/10
+        salinidade = float(salinidade)
+        profundidade = float(profundidade)/1000  #profundidade deve ser quilômetros
+        #
+        if not (temperatura >= 0 and temperatura <= 3.5):
+            raise Exception(
+                'Informe uma Temperatura válida entre 0 a 35 graus Celsius')
+        #
+        if not (salinidade >= 0 and salinidade <= 45):
+            raise Exception(
+                'Informe uma salinidade válida 0 a 45 partes por mil')
+        #
+        if not (profundidade >= 0 and profundidade <= 4):
+            raise Exception(
+                'Informe uma profundidade válida entre 0 a 4000 metros')
+        #
+        # c(0,S,t) = 1449.05 + 45.7t - 5.21t² + 0.23t³ + (1.333 - 0.126t + 0.009t²)(S - 35)
+        resultado_equacao_1 = 1449.05 \
+                              + 45.7 * temperatura \
+                              - 5.21 * pow(temperatura,2) \
+                              + 0.23 * pow(temperatura,3) \
+                              + (1.333 - 0.126 * temperatura + 0.009 * pow(temperatura,2)) * (salinidade - 35)
+        # c(D,S,t) = c(0,S,t) + (16.23 + 0.253t)D + (0.213-0.1t)D² + [0.016 + 0.0002(S-35)](S - 35)tD
+        resultado_equacao = resultado_equacao_1 \
+                            + (16.23 + 0.253 * temperatura) * profundidade \
+                            + (0.213-0.1 * temperatura) * pow(profundidade,2) \
+                            + (0.016 + 0.0002 * (salinidade-35)) * (salinidade - 35) * temperatura * profundidade
+        #
+        return resultado_equacao
+
+
 # if __name__ =="__main__":
 #     calcula = CalcularVelocidade()
 #     temperatura =
