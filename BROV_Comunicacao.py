@@ -1,13 +1,44 @@
-class CalcularVelocidadeSomAgua():
-    def Calcular_Velocidade(self,
-                            temperatura,
-                            salinidade,
-                            pressao,
-                            profundidade=0,
-                            latitude=0):
-        print("teste")
+from enum import Enum
 
-    def equacao_mackenzie(self, temperatura, salinidade, profundidade):
+class TipoEquacao(Enum):
+    MACKENZIE = 1
+    COPPENS = 2
+    UNESCO = 3
+    DEL_GROSSO = 4
+    NPL = 5
+
+class CalcularVelocidadeSomAgua():      
+    def calcular_velocidade_som(self, 
+                                tipoequacao: TipoEquacao, 
+                                temperatura, salinidade, 
+                                pressao=None, profundidade=None,
+                                latitude=None):
+        """
+            Calcula a velocidade do som na agua de acordo com o tipo de equação
+        Args:
+            temperatura (float): temperatura em graus Celsius
+            salinidade (float): salinidade em partes por mil
+            profundidade (float): profundidade em metros. Defaults to None.
+            pressao (float): pressão em quilopascal. Defaults to None.
+            latitude(float): latitude do objeto. Defaults to None.
+
+        Returns:
+            velocidade_som(float): Velocidade do som na agua 
+        """
+        if tipoequacao == TipoEquacao.MACKENZIE :
+            return self.calcular_equacao_mackenzie(temperatura, salinidade, profundidade)
+        elif tipoequacao == TipoEquacao.COPPENS :
+            return self.calcular_equacao_coppens(temperatura, salinidade, profundidade)
+        elif tipoequacao == TipoEquacao.UNESCO :
+            return self.calcular_equacao_unesco(temperatura, salinidade, pressao)
+        elif tipoequacao == TipoEquacao.DEL_GROSSO :
+            # return self.equacao_del_grosso(temperatura, salinidade, pressao)
+            print('Falta em construção')
+        elif tipoequacao == TipoEquacao.NPL :
+            # return self.equacao_NPL(temperatura, salinidade, profundidade, latitude)   
+            print('Falta em construção')    
+
+    def calcular_equacao_mackenzie(self, temperatura, salinidade, profundidade):
         """
             A equação para a velocidade do som na água do mar em função da temperatura, 
             salinidade e profundidade é dada pela equação de Mackenzie (1981).
@@ -34,7 +65,7 @@ class CalcularVelocidadeSomAgua():
         #
         if not (profundidade >= 0 and profundidade <= 8000):
             raise Exception(
-                'Informe uma profundidade válidaentre 0 a 8000 metros')
+                'Informe uma profundidade válida entre 0 a 8000 metros')
         #
         # c(D,S,T) = 1448.96 + 4.591T - 5.304 x 10⁻²T² + 2.374 x 10⁻⁴T³ + 1.340 (S-35) +
         #            + 1.630 x 10⁻²D + 1.675 x 10⁻⁷D² - 1.025 x 10⁻²T(S - 35) - 7.139 x 10⁻¹³TD³
@@ -49,7 +80,7 @@ class CalcularVelocidadeSomAgua():
         #
         return resultado_equacao
 
-    def equacao_coppens(self, temperatura, salinidade, profundidade):
+    def calcular_equacao_coppens(self, temperatura, salinidade, profundidade):
         """
             A equação para a velocidade do som na água do mar em função da temperatura, 
             salinidade e profundidade é dada pela equação de Coppens (1981).
@@ -91,8 +122,8 @@ class CalcularVelocidadeSomAgua():
                             + (0.016 + 0.0002 * (salinidade-35)) * (salinidade - 35) * temperatura * profundidade
         #
         return resultado_equacao
-
-    def equacao_unesco(self, temperatura, salinidade, pressao):
+    
+    def calcular_equacao_unesco(self, temperatura, salinidade, pressao):
             """
                 O algoritmo padrão internacional, muitas vezes conhecido como algoritmo da UNESCO, é devido a Chen e Millero (1977), 
                 usa a pressão como variável em vez de profundidade.
@@ -101,7 +132,7 @@ class CalcularVelocidadeSomAgua():
             Args:
                 temperatura (float): temperatura em graus Celsius (0 a 40°C)
                 salinidade (float): salinidade em partes por mil  (0 a 40)
-                pressao (float): pressão em Quilopascal  (0 a 100000 Kpa)
+                pressao (float): pressão em quilopascal  (0 a 100000 Kpa)
             Returns
                 velocidade_som(float): Velocidade do som na agua        
             """
@@ -177,8 +208,8 @@ class CalcularVelocidadeSomAgua():
             resultado_equacao = equacao_cw + equacao_a * salinidade + equacao_b * pow(salinidade,3/2) + equacao_d * pow( salinidade,2)
             #
             return resultado_equacao
-
-    def equacao_del_grosso(self, temperatura, salinidade, pressao):
+    
+    def calcular_equacao_del_grosso(self, temperatura, salinidade, pressao):
         """
             Uma equação alternativa ao algoritmo da UNESCO, que tem uma gama mais restrita de validade, 
             é a equação de Del Grosso (1974). 
@@ -255,53 +286,49 @@ class CalcularVelocidadeSomAgua():
         resultado_equacao = coef_C000 + equacao_CT + equacao_CS + equacao_CSTP
         #
         return resultado_equacao
+    
+    def calcular_equacao_NPL(self, T, S, profundidade, latitude):        
+        # """
+        #     A equação para a velocidade do som na água do mar em função da temperatura, 
+        #     salinidade e profundidade é dada pela equação de Mackenzie (1981).
+        #     Faixa de validade: temperatura 2 a 30°C, salinidade 25 a 40 partes por mil, profundidade 0 a 8000 m
+        #     link: http://resource.npl.co.uk/acoustics/techguides/soundseawater/underlying-phys.html#up_mackenzie
+        # Args:
+        #     temperatura (float): temperatura em graus Celsius (2 a 30°C)
+        #     salinidade (float): salinidade em partes por mil (25 a 40)
+        #     profundidade (float): profundidade em metros (0 a 8000m)
+        #     latitude(float): latitude do objeto
+        # Returns
+        #     velocidade_som(float): Velocidade do som na agua             
+        # """
+        pass
+        # T = float(T)
+        # S = float(S)
+        # profundidade = float(profundidade)
+        # #
+        # if not (T >= 2 and T <= 30):
+        #     raise Exception(
+        #         'Informe uma Temperatura válida entre 2 a 30 graus Celsius')
+        # #
+        # if not (S >= 25 and S <= 40):
+        #     raise Exception(
+        #         'Informe uma salinidade válida 25 a 40 partes por mil')
+        # #
+        # if not (profundidade >= 0 and profundidade <= 8000):
+        #     raise Exception(
+        #         'Informe uma profundidade válidaentre 0 a 8000 metros')
+        # #
+        # """c = 1402.5 + 5T - 5.44 x 10⁻²T + 2.1 x 10⁻⁴T³
+        #     + 1.33S - 1.23 x 10⁻²ST + 8.7 x 10⁻⁵ST²
+        #     +1.56 x 10⁻²Z + 2.55 x 10⁻⁷Z² - 7.3 x 10⁻¹²Z³
+        #     + 1.2 x 10⁻⁶Z(Φ - 45) - 9.5 x 10⁻¹³TZ³
+        #     + 3 x 10⁻⁷T²Z + 1.43 x 10⁻⁵SZ"""
+        # Z=0
+        # resultado_equacao = 1402.5 + 5 * T - 5.44 * pow(10,-2) * T + 2.1 * pow(10,-4) * pow(T,3) \
+        #                     + 1.33 * S - 1.23 * pow(10,-2) * S * T + 8.7 * pow(10,-5)*S* pow(T,2) \
+        #                     + 1.56 * pow(10,-2) * Z + 2.55 * pow(10,-7) * pow(Z,2) - 7.3 * pow(10,-12)* pow(Z,3) \
+        #                     + 1.2 * pow(10,-6) * Z * (latitude - 45) - 9.5 * pow(10,-13) * T* pow(Z,3) \
+        #                     + 3 * pow(10,-7) * pow(T,2) * Z + 1.43 * pow(10,-5) * S * Z
 
-def equacao_NPL(self, temperatura, salinidade, profundidade):
-        """
-            A equação para a velocidade do som na água do mar em função da temperatura, 
-            salinidade e profundidade é dada pela equação de Mackenzie (1981).
-            Faixa de validade: temperatura 2 a 30°C, salinidade 25 a 40 partes por mil, profundidade 0 a 8000 m
-            link: http://resource.npl.co.uk/acoustics/techguides/soundseawater/underlying-phys.html#up_mackenzie
-        Args:
-            temperatura (float): temperatura em graus Celsius (2 a 30°C)
-            salinidade (float): salinidade em partes por mil (25 a 40)
-            profundidade (float): profundidade em metros (0 a 8000m)
-        Returns
-            velocidade_som(float): Velocidade do som na agua             
-        """
-        temperatura = float(temperatura)
-        salinidade = float(salinidade)
-        profundidade = float(profundidade)
-        #
-        if not (temperatura >= 2 and temperatura <= 30):
-            raise Exception(
-                'Informe uma Temperatura válida entre 2 a 30 graus Celsius')
-        #
-        if not (salinidade >= 25 and salinidade <= 40):
-            raise Exception(
-                'Informe uma salinidade válida 25 a 40 partes por mil')
-        #
-        if not (profundidade >= 0 and profundidade <= 8000):
-            raise Exception(
-                'Informe uma profundidade válidaentre 0 a 8000 metros')
-        #
-        # c(D,S,T) = 1448.96 + 4.591T - 5.304 x 10⁻²T² + 2.374 x 10⁻⁴T³ + 1.340 (S-35) +
-        #            + 1.630 x 10⁻²D + 1.675 x 10⁻⁷D² - 1.025 x 10⁻²T(S - 35) - 7.139 x 10⁻¹³TD³
-        resultado_equacao = 1448.96 + 4.591 * temperatura \
-                            - 5.304 * pow(10,-2) * pow(temperatura,2) \
-                            + 2.374 * pow(10,-4) * pow(temperatura,3) \
-                            + 1.340 * (salinidade-35) \
-                            + 1.630 * pow(10,-2) * profundidade \
-                            + 1.675 * pow(10,-7) * pow(profundidade,2) \
-                            - 1.025 * pow(10,-2) * temperatura * (salinidade - 35) \
-                            - 7.139 * pow(10,-13) * temperatura * pow(profundidade,3)
-        #
-        return resultado_equacao            
-
-
-# if __name__ =="__main__":
-#     calcula = CalcularVelocidade()
-#     temperatura =
-#     salinidade =
-#     pressao =
-#     calcula.equacao_mackenzie(temperatura, salinidade, pressao)
+        # #
+        # return resultado_equacao
