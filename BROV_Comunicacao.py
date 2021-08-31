@@ -1,18 +1,37 @@
 from enum import Enum
 
-class TipoEquacao(Enum):
+class TipoEquacao(Enum): 
     MACKENZIE = 1
+    """
+    Equação Mackenzie
+    Faixa de validade: temperatura 2 a 30°C, salinidade 25 a 40 partes por mil, profundidade 0 a 8000 m 
+    """
     COPPENS = 2
+    """
+    Equação Coppens
+    Faixa de validade: temperatura de 0 a 35 °C, salinidade de 0 a 45 partes por mil, profundidade de 0 a 4000 m
+    """
     UNESCO = 3
+    """
+    Equação Unesco
+    Faixa de validade: temperatura de 0 a 40 °C, salinidade de 0 a 40 partes por mil, pressão de 0 a 1000 bar (Wong e Zhu, 1995).
+    """
     DEL_GROSSO = 4
+    """
+    Equação Del Grosso
+    Faixa de validade: temperatura de 0 a 30°C, salinidade de 30 a 40 partes por mil, pressão de 0 a 1000 kg/cm², onde 100 kPa=1,019716 kg/cm2. (Wong e Zhu, 1995)    
+    """
     NPL = 5
+    """
+    Equação NPL
+    Faixa de validade: Esta equação é válida para uso em qualquer oceano ou mar com uma salinidade que não exceda 42.
+    """    
 
 class CalcularVelocidadeSomAgua():      
     def calcular_velocidade_som(self, 
                                 tipoequacao: TipoEquacao, 
                                 temperatura, salinidade, 
-                                pressao=None, profundidade=None,
-                                latitude=None):
+                                pressao =None, profundidade=None, latitude=None):
         """
             Calcula a velocidade do som na agua de acordo com o tipo de equação
         Args:
@@ -21,7 +40,6 @@ class CalcularVelocidadeSomAgua():
             profundidade (float): profundidade em metros. Defaults to None.
             pressao (float): pressão em quilopascal. Defaults to None.
             latitude(float): latitude do objeto. Defaults to None.
-
         Returns:
             velocidade_som(float): Velocidade do som na agua 
         """
@@ -32,8 +50,7 @@ class CalcularVelocidadeSomAgua():
         elif tipoequacao == TipoEquacao.UNESCO :
             return self.calcular_equacao_unesco(temperatura, salinidade, pressao)
         elif tipoequacao == TipoEquacao.DEL_GROSSO :
-            # return self.equacao_del_grosso(temperatura, salinidade, pressao)
-            print('Falta em construção')
+            return self.calcular_equacao_del_grosso(temperatura, salinidade, pressao)
         elif tipoequacao == TipoEquacao.NPL :
             # return self.equacao_NPL(temperatura, salinidade, profundidade, latitude)   
             print('Falta em construção')    
@@ -222,11 +239,12 @@ class CalcularVelocidadeSomAgua():
             pressao (float): pressão em Quilopascal  (0 a 98066 Kpa)
         Returns
             velocidade_som(float): Velocidade do som na agua             
+        Atenção: Essa função apresenta erro na 8ª casa decimal
         """
 
         temperatura = float(temperatura)
         salinidade = float(salinidade)
-        pressao = float(pressao) #em kg/cm²
+        pressao = float(pressao) / 98.066 #em kg/cm²
         #
         if not (temperatura >= 0 and temperatura <= 30):
             raise Exception(
@@ -276,47 +294,41 @@ class CalcularVelocidadeSomAgua():
         #ΔCP(P) = CP1P + CP2P² + CP3P³
         equacao_CP = coef_CP[0] * pressao + coef_CP[1] * pow(pressao,2) + coef_CP[2] * pow(pressao,3)
         #ΔCSTP(S,T,P) = CTPTP + CT3PT³P + CTP2TP² + CT2P2T²P² + CTP3TP³ + CSTST + CST2ST² + CSTPSTP + CS2TPS²TP + CS2P2S²P²
-        equacao_CSTP =   coef_CTP * temperatura * pressao + coef_CT3P * pow(temperatura,3) * pressao + coef_CTP2 * temperatura * pow(pressao,2) \
-                       + coef_CT2P2 * pow(temperatura,2) * pow(pressao,2) + coef_CTP3 * temperatura * pow(pressao,3) \
-                       + coef_CST * salinidade * temperatura + coef_CST2 * salinidade * pow(temperatura,2) \
-                       + coef_CSTP * salinidade * temperatura * pressao + coef_CS2TP * pow(salinidade,2) * temperatura * pressao \
-                       + coef_CS2P2 * pow(salinidade,2) * pow(pressao,2)
+        equacao_CSTP =   coef_CTP * temperatura * pressao + coef_CT3P * pow(temperatura,3) * pressao \
+                       + coef_CTP2 * temperatura * pow(pressao,2) + coef_CT2P2 * pow(temperatura,2) * pow(pressao,2) \
+                       + coef_CTP3 * temperatura * pow(pressao,3) + coef_CST * salinidade * temperatura \
+                       + coef_CST2 * salinidade * pow(temperatura,2) + coef_CSTP * salinidade * temperatura * pressao \
+                       + coef_CS2TP * pow(salinidade,2) * temperatura * pressao  + coef_CS2P2 * pow(salinidade,2) * pow(pressao,2)
         #
         # c(S,T,P) = C000 + ΔCT + ΔCS + ΔCP + ΔCSTP
-        resultado_equacao = coef_C000 + equacao_CT + equacao_CS + equacao_CSTP
+        resultado_equacao = coef_C000 + equacao_CT + equacao_CS + equacao_CP + equacao_CSTP
         #
         return resultado_equacao
     
     def calcular_equacao_NPL(self, T, S, profundidade, latitude):        
-        # """
-        #     A equação para a velocidade do som na água do mar em função da temperatura, 
-        #     salinidade e profundidade é dada pela equação de Mackenzie (1981).
-        #     Faixa de validade: temperatura 2 a 30°C, salinidade 25 a 40 partes por mil, profundidade 0 a 8000 m
-        #     link: http://resource.npl.co.uk/acoustics/techguides/soundseawater/underlying-phys.html#up_mackenzie
-        # Args:
-        #     temperatura (float): temperatura em graus Celsius (2 a 30°C)
-        #     salinidade (float): salinidade em partes por mil (25 a 40)
-        #     profundidade (float): profundidade em metros (0 a 8000m)
-        #     latitude(float): latitude do objeto
-        # Returns
-        #     velocidade_som(float): Velocidade do som na agua             
-        # """
+        """
+            Equação adequada para uso em todas as águas "neptunianas", excluindo os "pontos quentes" anormais 
+            de temperatura e salinidade anormalmente altas, a fim de permitir o calculo com precisão
+            a velocidade do som em vários cenários usando apenas uma única equação
+            Faixa de validade: Esta equação é válida para uso em qualquer oceano ou mar com uma salinidade que não exceda 42.
+            link: http://resource.npl.co.uk/acoustics/techguides/soundseawater/underlying-phys.html#up_npl
+        Args:
+            temperatura (float): temperatura em graus Celsius
+            salinidade (float): salinidade em partes por mil (menor que 42)
+            profundidade (float): profundidade em metros
+            latitude(float): latitude em graus 
+        Returns
+            velocidade_som (float): Velocidade do som na agua             
+        """
         pass
         # T = float(T)
         # S = float(S)
         # profundidade = float(profundidade)
+        # latitude =  float(latitude)
         # #
-        # if not (T >= 2 and T <= 30):
+        # if not (S >= 0 and S <= 42):
         #     raise Exception(
-        #         'Informe uma Temperatura válida entre 2 a 30 graus Celsius')
-        # #
-        # if not (S >= 25 and S <= 40):
-        #     raise Exception(
-        #         'Informe uma salinidade válida 25 a 40 partes por mil')
-        # #
-        # if not (profundidade >= 0 and profundidade <= 8000):
-        #     raise Exception(
-        #         'Informe uma profundidade válidaentre 0 a 8000 metros')
+        #         'Informe uma salinidade válida 0 a 42 partes por mil')
         # #
         # """c = 1402.5 + 5T - 5.44 x 10⁻²T + 2.1 x 10⁻⁴T³
         #     + 1.33S - 1.23 x 10⁻²ST + 8.7 x 10⁻⁵ST²
