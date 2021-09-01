@@ -28,8 +28,7 @@ class TipoEquacao(Enum):
     """    
 
 class CalcularVelocidadeSomAgua():      
-    def calcular_velocidade_som(self, 
-                                tipoequacao: TipoEquacao, 
+    def calcular_velocidade_som(self, tipoequacao, 
                                 temperatura, salinidade, 
                                 pressao =None, profundidade=None, latitude=None):
         """
@@ -344,3 +343,6 @@ class CalcularVelocidadeSomAgua():
 
         # #
         # return resultado_equacao
+
+if __name__ == '__main__':
+    print('Teste')

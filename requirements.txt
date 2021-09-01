@@ -1,0 +1,4 @@
+Simpy==2.2
+matplotlib
+numpy
+pytest  

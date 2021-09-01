@@ -8,24 +8,23 @@
 #
 ###########################################################################
 
-import src.Simulation  as AUVSim
-# import Simulation as AUVSim
+import AUVNetSim.Simulation as AUVSim
 import sys, random
-from matplotlib import pylab
-# import pylab
+import pylab
 
-def RoutingSimulation():
+def RoutingSimulation(end_arquivo_config=None):
+    end_arquivo_config = sys.argv[1] if (len(sys.argv) == 2) else end_arquivo_config
+    if end_arquivo_config is None:
+        print('Endereço do arquivo de configuração NÃO INFORMADO. Nem no Argv e nem no Parâmetro')
+        exit(1)   
+    #    
     random.seed()
-    
+    #
     def GenerateRandomPeriodicTransmit(min, max):
         return random.random()*(max-min) + min
-    
-    if(len(sys.argv) < 2):
-        print ("usage: ", sys.argv[0], "ConfigFile")
-        exit(1)
-    
-    config = AUVSim.ReadConfigFromFile(sys.argv[1])
-
+    #
+    config = AUVSim.ReadConfigFromFile(end_arquivo_config)
+    #
     nodes=[]
     for j in range(0,1):
         print ("Running simulation")
@@ -43,10 +42,10 @@ def RoutingSimulation():
 
 
     PlotScenario3D(nodes, config)
-    ##    PlotConsumption(nodes)
-    ##    PlotDelay(nodes)
-    ##    PlotDelayHist(nodes)    
-    pylab.show()
+    PlotConsumption(nodes)
+    PlotDelay(nodes)
+    # PlotDelayHist(nodes)    
+    pylab.show()    
 
     
 def ROU():
@@ -232,10 +231,11 @@ def PlotScenario(nodes):
 
 # Plots the scenario in 3D axis
 def PlotScenario3D(nodes, config):
-    import matplotlib.axes as p3
+    # import matplotlib.axes as p3
+    from mpl_toolkits.mplot3d import Axes3D
 
     fig=pylab.figure()
-    ax = p3.Axes(fig)
+    ax = Axes3D(fig)
 
     filename = 'Positions_'+config["MAC"]["protocol"]+'_'+str(config["Routing"]["Algorithm"])+'.txt'
     f = open(filename,'w')
@@ -264,16 +264,17 @@ def PlotScenario3D(nodes, config):
             route = [i[1] for i in log_line["route"]]
             route.append(pos)
             rx,ry,rz = ReorderPositions(route)
-            ax.plot3d(rx,ry,rz)
+            ax.plot3D(rx,ry,rz)
 
-        pylab.text(node.GetCurrentPosition()[0],node.GetCurrentPosition()[1],node.name)
+        # pylab.text(10,20,"max" )
+        # pylab.text(x=node.GetCurrentPosition()[0],y=node.GetCurrentPosition()[1],s=node.name)
 
     f.close()
     Normalize(tx_energy_vec, max(tx_energy_vec))
     Normalize(rx_energy_vec, max(rx_energy_vec))
 
     nx,ny,nz = ReorderPositions(positions)
-    ax.scatter3d(nx,ny,nz,s=tx_energy_vec, c=rx_energy_vec)
+    ax.scatter3D(nx,ny,nz,s=tx_energy_vec, c=rx_energy_vec)
 
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
@@ -410,5 +411,6 @@ def Average(x):
     return av/len(x)
 
 if __name__ == "__main__":
-    RoutingSimulation()
+    nome_arquivo = '.\\Routing.conf'
+    RoutingSimulation(nome_arquivo)
 ##    ROU()

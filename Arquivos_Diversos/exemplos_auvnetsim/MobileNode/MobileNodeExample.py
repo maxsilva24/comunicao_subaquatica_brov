@@ -8,7 +8,7 @@
 #
 ###########################################################################
 
-import src.Simulation as AUVSim
+import AUVNetSim.Simulation as AUVSim
 import sys
 
 def ReorderPositions(PositionContainer):
@@ -24,12 +24,14 @@ def ReorderPositions(PositionContainer):
         z.append(pos[2])
     
     return (x,y,z)
-    
-if(len(sys.argv) < 2):
-    print ("usage: ", sys.argv[0], "ConfigFile")
-    exit(1)
+nome_arquivo = '.\\Mobile.conf'
+# end_arquivo_config = sys.argv[1] if (len(sys.argv) == 2) else end_arquivo_config    
+# if(len(sys.argv) < 2):
+#     print ("usage: ", sys.argv[0], "ConfigFile")
+#     exit(1)
 
-config = AUVSim.ReadConfigFromFile(sys.argv[1])
+# config = AUVSim.ReadConfigFromFile(sys.argv[1])
+config = AUVSim.ReadConfigFromFile(nome_arquivo)
 
 #the results we will plot... later
 offered_load = []
@@ -40,12 +42,12 @@ nodes=AUVSim.RunSimulation(config)
 print ("Done")
 
 print ("Plotting Results...")
-# import pylab
-from matplotlib import pylab
-import matplotlib.axes3d as p3
+#
+import pylab
+from mpl_toolkits.mplot3d import Axes3D
 
 fig=pylab.figure()
-ax = p3.Axes3D(fig)
+ax = Axes3D(fig)
 
 positions=[]
 
@@ -56,11 +58,11 @@ for node in nodes.values():
         route = [i[1] for i in log_line["route"]]
         route.append(pos)
         rx,ry,rz = ReorderPositions(route)
-        ax.plot3d(rx,ry,rz)
+        ax.plot3D(rx,ry,rz)
 ##    ax.text(node.GetCurrentPosition()[0],node.GetCurrentPosition()[1],node.name)        
 
 nx,ny,nz = ReorderPositions(positions)
-ax.scatter3d(nx,ny,nz)
+ax.scatter3D(nx,ny,nz)
 
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
