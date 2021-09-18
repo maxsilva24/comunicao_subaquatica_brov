@@ -9,6 +9,7 @@ import SimPy.Simulation as Sim
 from numpy import *
 from numpy.random import *
 
+print_log_console = True #
 class ApplicationLayer(Sim.Process):
     def __init__(self, node):
         Sim.Process.__init__(self)
@@ -57,5 +58,5 @@ class ApplicationLayer(Sim.Process):
 
 
     def PrintMessage(self, msg):
-        pass
-        #print "APP (%s): %s" % (self.node.name, msg)        
+        if print_log_console:
+            print ("APP (%s): %s" % (self.node.name, msg))        

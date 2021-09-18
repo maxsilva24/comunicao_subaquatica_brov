@@ -1,4 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
+###########################################################################
+#    Copyright (C) 2007 by Justin Eskesen and Josep Miquel Jornet Montana                                     
+#    <jge@mit.edu> <jmjornet@mit.edu>                                                            
+#
+# Copyright: See COPYING file that comes with this distribution
+#
+###########################################################################
+
 from enum import Enum
+import math
+import AUVNetSim.Simulation as AUVSim
+import sys, random
+import time
+import pylab
 
 class TipoEquacao(Enum): 
     MACKENZIE = 1
@@ -27,7 +43,8 @@ class TipoEquacao(Enum):
     Faixa de validade: Esta equação é válida para uso em qualquer oceano ou mar com uma salinidade que não exceda 42.
     """    
 
-class CalcularVelocidadeSomAgua():      
+class CalcularVelocidadeSomAgua():   
+
     def calcular_velocidade_som(self, tipoequacao, 
                                 temperatura, salinidade, 
                                 pressao =None, profundidade=None, latitude=None):
@@ -344,5 +361,626 @@ class CalcularVelocidadeSomAgua():
         # #
         # return resultado_equacao
 
-if __name__ == '__main__':
-    print('Teste')
+    def calcular_distancia_3D(self, coordenadada_origem, coordenadada_destino):
+        """
+            Calcula a distancia 3D entre dois pontos
+        Args:
+            coordenadada_origem ([tuple(x,y,z)]): Coordenada X,Y e Z Origem
+            coordenadada_destino ([tuple(x,y,z)]): Coordenada X,Y e Z Destino
+
+        Returns:
+            [float]: [distancia entre dois pontos]
+        """
+        x_origem, y_origem, z_origem = coordenadada_origem
+        x_destino, y_destino, z_destino = coordenadada_destino
+        distancia = math.sqrt(pow((x_destino - x_origem),2) + pow((y_destino - y_origem),2) + pow((z_destino - z_origem),2))
+        return distancia
+    
+    def calcular_delay_transmissao(self,coordenadada_origem, coordenadada_destino,
+                                        tipoequacao, 
+                                        temperatura, salinidade, 
+                                        pressao =None, profundidade=None, latitude=None ):
+        velocidade_som = self.calcular_velocidade_som(tipoequacao, temperatura, salinidade, pressao, profundidade, latitude)
+        distancia = self.calcular_distancia_3D(coordenadada_origem,coordenadada_destino)
+        delay = velocidade_som * distancia
+        return delay
+    
+    def gerar_delay_tramissao(self, coordenadada_origem, coordenadada_destino,
+                                    tipoequacao, 
+                                    temperatura, salinidade, 
+                                    pressao =None, profundidade=None, latitude=None):
+        delay = self.calcular_delay_transmissao(coordenadada_origem, coordenadada_origem,
+                                                tipoequacao, temperatura, salinidade,
+                                                pressao, profundidade, latitude)
+        time.sleep(delay)
+        
+class ConfiguracaoRede():
+    
+    def __init__(self, conf_padrao=True, dict_conf_rede = {}, end_arquivo_config=""):
+        self.conf_rede_atual =  dict_conf_rede
+        #
+        if end_arquivo_config != "":
+            self.conf_rede_atual = self.abrir_arquivo_config(end_arquivo_config)
+        elif conf_padrao == True and dict_conf_rede == {}:
+            self.conf_rede_atual = self.gerar_config_rede()
+
+    @property
+    def data_packet_length(self):
+        return self.conf_rede_atual['DataPacketLength']
+
+    @data_packet_length.setter
+    def data_packet_length(self, tam_pacote_mensagem):
+        self.conf_rede_atual['DataPacketLength'] = tam_pacote_mensagem    
+
+    @property
+    def posicao_node_destino(self):
+        return self.conf_rede_atual['Nodes'][0] [1]
+
+    @posicao_node_destino.setter
+    def posicao_node_destino(self, tpl_pos_node_destino):
+        """
+            Alterar a posição do remente no grid
+        Args:
+            tpl_pos_node_remetente (tuple()): tupla no formato(x, y z)
+        """
+        self.conf_rede_atual['Nodes'][0] [1] = tpl_pos_node_destino
+
+    @property
+    def posicao_node_remente(self):
+        """
+            Retorna a posição do remente no grid
+        Returns:
+            [float]: posição do remente no grid
+        """
+        return self.conf_rede_atual['Nodes'][1] [1]
+
+    @posicao_node_remente.setter
+    def posicao_node_remente(self, tpl_pos_node_remetente):
+        """
+            Alterar a posição do remente no grid
+        Args:
+            tpl_pos_node_remetente (tuple()): tupla no formato(x, y z)
+        """
+        self.conf_rede_atual['Nodes'][1] [1] = tpl_pos_node_remetente
+
+    def gerar_config_rede(self, SimulationDuration = 3600.00, 
+                                BandWidth =  10.89, 
+                                BandwidthBitrateRelation =   1.00,
+                                Frequency =   9.22, 
+                                TransmitPower = 250.00 ,
+                                ReceivePower = -30.00 ,
+                                ListenPower = -30.00 ,
+                                DataPacketLength = 9600.00, #bits 
+                                PHY = {"SIRThreshold": 15.00, "SNRThreshold": 20.00, "LISThreshold":  3.00, "variablePower":True, "variableBandwidth":False,"level2distance":{0:11224.97}},
+                                MAC = {"protocol":"ALOHA", "max2resend":10.0, "attempts":4, "ACK_packet_length":24, "RTS_packet_length":48, "CTS_packet_length":48, "WAR_packet_length":24, "SIL_packet_length":24, "tmin/T":2.0, "twmin/T":0.0, "deltatdata":0.0, "deltad/T":0.0, },
+                                Routing = {"Algorithm": "Static", "variation":2, "coneAngle":60, "coneRadius":11174.97, "maxDistance":10e3},
+                                Nodes = [["SinkBoia", (5000,5000,500), None, "Submarino"], ["Submarino",(5000,15000,500), None, "SinkBoia"]],
+                                NodeField = (5000.00,4,4, (0,0,0), "S"),
+                                Height = 1000.00,
+                                Period = 240.0,
+                                RandomGrid = False,
+                                Moving = False,
+                                Speed = 0.0):
+        """
+            Retorna as configurações padrão da rede subaquatica 
+        Args:
+            SimulationDuration (float, optional): Duracao da simulacao. Defaults to 3600.00.
+            BandWidth (float, optional): Largura de banda disponivel (kHz). Defaults to 10.89.
+            BandwidthBitrateRelation (float, optional): Eficiencia de largura de banda. Defaults to 1.00.
+            Frequency (float, optional): Frequencia (kHz). Defaults to 9.22.
+            TransmitPower (float, optional): Potencia maxima de transmissao -> intensidade acustica (dB re uPa). Defaults to 250.00.
+            ReceivePower (float, optional): Consumo de energia para receber mensagem (dB) -> consumo de bateria (dB). Defaults to -30.00.
+            ListenPower (float, optional): Consumo de energia para Ouvir mensagem (dB) -> consumo de bateria (dB W). Defaults to -30.00.
+            DataPacketLength (float, optional): Tamanho do pacote de dados. Defaults to 9600.00.
+            PHY (dict, optional): PHY: Parâmetros para camada fisica.Defaults to {"SIRThreshold": 15.00, "SNRThreshold": 20.00, "LISThreshold":  3.00, "variablePower":True, "variableBandwidth":False,"level2distance":{0:11224.97}}
+            MAC (dict, optional): MAC: Definir o protocolo e os seus parametros da camada MAC. Defaults to {"protocol":"ALOHA", "max2resend":10.0, "attempts":4, "ACK_packet_length":24, "RTS_packet_length":48, "CTS_packet_length":48, "WAR_packet_length":24, "SIL_packet_length":24, "tmin/T":2.0, "twmin/T":0.0, "deltatdata":0.0, "deltad/T":0.0, }.
+            Routing (dict, optional): Roteamento: defina parametros para o Algorimo de roteamento. Defaults to {"Algorithm": "Static", "variation":2, "coneAngle":60, "coneRadius":11174.97, "maxDistance":10e3}.
+            Nodes (list, optional): Configuração dos nós --> Formato: AcousticNode(Address, position[, period, destination]). Defaults to [ ["SinkMobile", [[(3000,-3000, 1000),(3000,3000,500),(-3000,3000,1000)],1.0], 300, "StaticNode013"]].
+            NodeField (tuple, optional): Configuração dos campos do nós -- Formato (grid_block_size, N_blocks_wide, N_blocks_high[, bottom_left_corner[, node_ID_prefix]). Defaults to (5000.00,4,4, (0,0,0), "S").
+            Height (float, optional): Altura maxima/profundidade em que os nos podem está. Defaults to 1000.00.
+            Period (float, optional): Periodo de envio de mensagem. Defaults to 240.0.
+            RandomGrid (bool, optional): Indica se é para gerar grid aleatória para os nós . Defaults to False.
+            Moving (bool, optional): Indica se é para gerar grid aleatória para os nós. Defaults to False.
+            Speed (float, optional): Velocidade de movimentação. Defaults to 0.0.
+
+        Returns:
+            dictionary: Configuração da rede
+        """
+        conf_rede = {}
+        # Simulation Duration (seconds)
+        # Duracao da simulacao (segundos)
+        conf_rede["SimulationDuration"]       =SimulationDuration        
+        # Available Bandwidth (kHz) 
+        # Largura de banda disponivel (kHz)
+        conf_rede["BandWidth"]                =BandWidth                
+        # Bandwidth and bitrate relation (bps/Hz) 
+        #  Eficiencia de largura de banda (bps/Hz)
+        conf_rede["BandwidthBitrateRelation"] =BandwidthBitrateRelation 
+        # Frequency (kHz) 
+        # Frequencia (kHz)
+        conf_rede["Frequency"]                =Frequency                
+        # Transmit Power -> Acoustic Intensity (dB re uPa) -> Default value 
+        # Potencia maxima de transmissao -> intensidade acustica (dB re uPa)
+        conf_rede["TransmitPower"]            =TransmitPower            
+        # Receive Power (dB) -> Battery Consumption (dB) -> 3W for PSK modulation and 80mW for FSK
+        # Consumo de energia para receber mensagem (dB) -> consumo de bateria (dB)
+        conf_rede["ReceivePower"]             =ReceivePower             
+        # Listen Power (dB) -> Battery Consumption (dB) -> 80mW 
+        # Consumo de energia para Ouvir mensagem (dB) -> consumo de bateria (dB W)
+        conf_rede["ListenPower"]              =ListenPower              
+        # DataPacketLength (bits) 
+        #Tamanho do pacote de dados
+        conf_rede["DataPacketLength"]         =DataPacketLength         
+        # PHY: set parameters for the physical layer 
+        #PHY: Parâmetros para camada fisica
+        conf_rede["PHY"]                      =PHY                      
+        # MAC: define which protocol we are using & set params
+        #MAC: Definir o protocolo e os seus parametros da camada MAC
+        conf_rede["MAC"]                      =MAC                      
+        # Routing: set parameters for the routing layer
+        # Roteamento: defina parametros para o Algorimo de roteamento
+        conf_rede["Routing"]                  =Routing                  
+        # Nodes: here is where we define individual nodes
+        #Nodes: aqui e onde definimos nos individuais
+        # format: AcousticNode(Address, position[, period, destination])
+        # Nodes -> Formato: Endereco, Posicao [, periodo, destino]
+        conf_rede["Nodes"]                    =Nodes                    
+        # NodeField: Set up a field of nodes
+        # NodeField: Configure um campo de nos.
+        # format (grid_block_size, N_blocks_wide, N_blocks_high[, bottom_left_corner[, node_ID_prefix])
+        conf_rede["NodeField"]                =NodeField                
+        # Maximum height/depth at which nodes can be
+        # Altura maxima/profundidade em que os nos podem está
+        conf_rede["Height"]                   =Height                   
+        # By default, the nodes in the node field are just relays, but we can make them also generate information by changing this value.
+        # Por padrao, os nos no campo de no sao apenas reles, mas podemos faze-los tambem gerar informacoes alterando esse valor
+        conf_rede["Period"]                   =Period                   
+        # It makes more sense to place nodes randomly rather than in a perfect grid
+        # Faz mais sentido colocar nos aleatoriamente em vez de em uma grade
+        conf_rede["RandomGrid"]               =RandomGrid               
+        # Nodes in the node field can be moving randomly and in without being aware of it because of underwater flows.
+        # Nos no campo de no podem estar se movendo aleatoriamente e dentro sem estar ciente disso por causa dos fluxos subaquatico
+        conf_rede["Moving"]                   =Moving                   
+        # velocidade de movimentacao na agua
+        conf_rede["Speed"]                    =Speed    
+        #
+        return conf_rede 
+
+    def abrir_arquivo_config(self, end_arquivo_config):
+        end_arquivo_config = sys.argv[1] if (len(sys.argv) == 2) else end_arquivo_config
+        #
+        if end_arquivo_config is None or end_arquivo_config == '':
+            print('Endereço do arquivo de configuração NÃO INFORMADO. Nem no Argv e nem no Parâmetro')
+            return {}
+        #
+        conf_rede_lida = AUVSim.ReadConfigFromFile(end_arquivo_config)
+        self.conf_rede_atual = conf_rede_lida
+        #
+        return conf_rede_lida                
+
+class BrovComunicacao():
+    
+    def __init__(self, dict_config_rede_subaquatica={}):
+        self.config_rede_subaquatica = ConfiguracaoRede(dict_conf_rede=dict_config_rede_subaquatica)
+
+    # Obtains the average delay and energy consumption per consumption
+    def GetStat(self, nodes):
+        packets = 0
+        delay = []
+        energy_vec = []
+        collisions = 0
+        
+        for x in nodes:
+            if x.physical_layer.tx_energy+x.physical_layer.rx_energy!=0:
+                energy_vec.append(x.physical_layer.tx_energy+x.physical_layer.rx_energy)
+
+            if len(x.app_layer.packets_time)!=0:
+                packets+=len(x.app_layer.packets_time)
+                delay.append(self.Average(x.app_layer.packets_time))
+
+            if len(x.physical_layer.transducer.collisions)!=0:
+                collisions+=len(x.physical_layer.transducer.collisions)
+
+        energy = sum(energy_vec)
+        delay = self.Average(delay)
+
+        return energy, packets, delay, collisions
+
+    # Returns the average tx level used
+    def GetLevel(self,nodes):
+        lev = []
+        for x in nodes:
+            if len(x.routing_layer.levels_used):
+                lev.append(self.Average(x.routing_layer.levels_used))
+
+        #print ("Average of the output power level covering:", self.Average(lev), "m.")
+        return self.Average(lev)
+    
+    # Computes the network throughput
+    def Throughput(self,nodes, simtime):
+        generated_packets = 0
+        received_packets = 0
+        delay = []
+        hops = []
+        
+        for x in nodes:
+            generated_packets+=x.app_layer.packets_sent
+            received_packets+=len(x.app_layer.packets_time)
+
+            if len(x.app_layer.packets_time)!=0:
+                delay.append(self.Average(x.app_layer.packets_time))
+                hops.append(self.Average(x.app_layer.packets_hops))
+
+        t_data = nodes[0].MACProtocol.t_data
+
+        throughput = received_packets*t_data/simtime*self.Average(hops)
+        offeredload = generated_packets*t_data/simtime*self.Average(hops)
+
+        ##    print "The throughput achieved for an offered load of", offeredload, "is", throughput
+        return offeredload, throughput
+
+    # Plots the scenario where the nodes are currently located. Size is proportional to transmited energy, color changes with reception power
+    def PlotScenario(self,nodes):
+        tx_energy_vec = []
+        rx_energy_vec = []
+        xpos = []
+        ypos = []
+        
+        pylab.figure()
+        pylab.hold(True)
+
+        for x in nodes:
+            xpos.append(x.GetCurrentPosition()[0])
+            ypos.append(x.GetCurrentPosition()[1])
+
+            tx_energy_vec.append(x.physical_layer.tx_energy)
+            rx_energy_vec.append(x.physical_layer.rx_energy)
+
+            if x.physical_layer.tx_energy > 1.0 or x.name[0:4] == "Sink":
+                pylab.text(x.GetCurrentPosition()[0],x.GetCurrentPosition()[1],x.name)
+
+        self.Normalize(tx_energy_vec, max(tx_energy_vec))
+        self.Normalize(rx_energy_vec, max(rx_energy_vec))
+        
+        pylab.scatter(xpos, ypos, s=tx_energy_vec, c=rx_energy_vec)
+        pylab.xlabel('X(m)')
+        pylab.ylabel('Y(m)')
+        pylab.title('Scenario')
+
+    # Plots the scenario in 3D axis
+    def PlotScenario3D(self,nodes, config):
+        # import matplotlib.axes as p3
+        from mpl_toolkits.mplot3d import Axes3D
+
+        fig=pylab.figure()
+        ax = Axes3D(fig)
+
+        filename = 'Positions_'+config["MAC"]["protocol"]+'_'+str(config["Routing"]["Algorithm"])+'.txt'
+        f = open(filename,'w')
+        filename = 'Routes_'+config["MAC"]["protocol"]+'_'+str(config["Routing"]["Algorithm"])+'.txt'
+        ff = open(filename,'w')
+        ff.write('-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n')
+
+        positions=[]
+        tx_energy_vec = []
+        rx_energy_vec = []    
+        
+        for node in nodes:
+            pos=node.GetCurrentPosition()
+            positions.append(pos)       
+            tx_energy_vec.append(node.physical_layer.tx_energy)
+            rx_energy_vec.append(node.physical_layer.rx_energy)
+            record = str(pos[0])+', '+str(pos[1])+', '+str(pos[2])+', '+str(node.physical_layer.tx_energy)+', '+str(node.physical_layer.rx_energy)+'\n'
+            f.write(record)
+
+            for log_line in node.app_layer.log:
+                for i in log_line["route"]:
+                    route = i[1]
+                    ff.write(str(route[0])+', '+str(route[1])+', '+str(route[2])+', ')
+                ff.write(str(pos[0])+', '+str(pos[1])+', '+str(pos[2])+', -1\n')
+
+                route = [i[1] for i in log_line["route"]]
+                route.append(pos)
+                rx,ry,rz = self.ReorderPositions(route)
+                ax.plot3D(rx,ry,rz)
+
+            # pylab.text(10,20,"max" )
+            # pylab.text(x=node.GetCurrentPosition()[0],y=node.GetCurrentPosition()[1],s=node.name)
+
+        f.close()
+        self.Normalize(tx_energy_vec, max(tx_energy_vec))
+        self.Normalize(rx_energy_vec, max(rx_energy_vec))
+
+        nx,ny,nz = self.ReorderPositions(positions)
+        ax.scatter3D(nx,ny,nz,s=tx_energy_vec, c=rx_energy_vec)
+
+        ax.set_xlabel('X [m]')
+        ax.set_ylabel('Y [m]')
+        ax.set_zlabel('Z [m]')
+        ax.axis("equal")
+
+    def ReorderPositions(self,PositionContainer):
+        """Reorder an array (list or tuple) of positions tuples into 3 lists:
+        a list of x's,y's, and z's for plotting.
+        """
+        x=[]
+        y=[]
+        z=[]
+        for pos in PositionContainer:
+            x.append(pos[0])
+            y.append(pos[1])
+            z.append(pos[2])
+    
+        return (x,y,z)
+
+    # Plots the energy consumption per node both in reception and in transmission
+    def PlotConsumption(self,nodes):
+        tx_energy_vec = []
+        rx_energy_vec = []
+
+        pylab.figure()
+
+        for x in nodes:
+            tx_energy_vec.append(x.physical_layer.tx_energy)
+            rx_energy_vec.append(x.physical_layer.rx_energy)
+
+        N = len(tx_energy_vec)
+        ind = pylab.arange(N)   # the x locations for the groups
+        width = 1               # the width of the bars
+        p1 = pylab.bar(ind, tx_energy_vec, width, color='r')
+        p2 = pylab.bar(ind, rx_energy_vec, width, color='g', bottom=tx_energy_vec)
+
+        pylab.ylabel('Energy (J)')
+        pylab.title('Power Consumption')
+
+        pylab.legend( (p1[0], p2[0]), ('Tx', 'Rx') )
+
+    # Plots the histogram of the consumed energy all over the network
+    def PlotConsumptionHist(self,nodes):
+        tx_energy_vec = []
+        rx_energy_vec = []
+        energy_vec = []
+
+        for x in nodes:
+            if x.physical_layer.tx_energy!=0:
+                tx_energy_vec.append(x.physical_layer.tx_energy)        
+            rx_energy_vec.append(x.physical_layer.rx_energy)
+            energy_vec.append(x.physical_layer.tx_energy+x.physical_layer.rx_energy)
+
+        energy = self.Average(energy_vec)
+        print ("Network total energy consumption:", sum(tx_energy_vec), "and average consumption per active node:", energy, "J." )
+        return energy
+
+        pylab.figure()    
+        pylab.hist(tx_energy_vec,20);
+        pylab.xlabel("Energy (J)");
+        pylab.ylabel("Number of nodes");
+        title = "Transmitting energy consumption"
+        pylab.title(title)
+
+        pylab.figure()
+        pylab.hist(rx_energy_vec,20);    
+        pylab.xlabel("Energy (J)");
+        pylab.ylabel("Number of nodes");
+        title = "Receiving energy consumption"
+        pylab.title(title)
+
+    # Plot the total delay and the number of hops for each packet in each node
+    def PlotDelay(self,nodes):
+        av = []
+        name = []
+        pylab.figure()
+        width = 0.5
+        
+        for x in nodes:
+            if len(x.app_layer.packets_time)!=0:
+                av.append(self.Average(x.app_layer.packets_time))
+                name.append(x.name)
+
+        ind = pylab.arange(len(av))
+        pylab.bar(ind, av, width)
+        pylab.xticks(ind+width/2, name)
+        
+    # Plot an histogram for each sink showing packets' delay
+    def PlotDelayHist(self,nodes):
+        packets = 0
+        delay = []
+        
+        for x in nodes:
+            if len(x.app_layer.packets_time)!=0:
+                print ("Total number of packets received at", x.name, ":", len(x.app_layer.packets_time))
+                packets+=len(x.app_layer.packets_time)
+                delay.append(self.Average(x.app_layer.packets_time))
+
+                print (x.app_layer.packets_time)
+                pylab.figure()
+                pylab.hist(x.app_layer.packets_time,100);
+                pylab.xlabel("End to End delay (s)");
+                pylab.ylabel("Number of Packets");
+                title = "End to End Delay for packets received at "+x.name
+                pylab.title(title)
+
+                pylab.figure()
+                pylab.hist(x.app_layer.packets_dhops,10);
+                pylab.xlabel("Delay per hop (s)");
+                pylab.ylabel("Number of Packets");
+                title = "Delay per hop for packets received at "+x.name
+                pylab.title(title)
+
+        print ("Average delay per packet in the network:", self.Average(delay), "s.")
+        return packets, delay
+        
+    # Normalizes energy in a scale from 10 to 1000 to achieve proper plots    
+    def Normalize(self,x, y):
+        for i in range(0,len(x)):
+            x[i]=x[i]/y*1000+50
+
+    # Computes the average value of vector x
+    def Average(self,x):
+        av = 0
+        for i in range(0,len(x)):
+            av+=x[i]
+
+        return av/len(x)
+   
+    def ROU(self,end_arquivo_config=None):
+
+        end_arquivo_config = sys.argv[1] if (len(sys.argv) == 2) else end_arquivo_config
+        if end_arquivo_config is None:
+            print('Endereço do arquivo de configuração NÃO INFORMADO. Nem no Argv e nem no Parâmetro')
+            exit(1) 
+
+        config = AUVSim.ReadConfigFromFile(end_arquivo_config)
+
+        random.seed()
+        
+        def GenerateRandomPeriodicTransmit(min, max):
+            return random.random()*(max-min) + min
+
+        period = []
+        energy = []
+        packets = []
+        delay = []
+        offered_load = []
+        throughput = []
+        to = []
+        col = []
+        output_power = []
+        t_data = []
+
+        for j in range(0,1):
+            filename = 'sim_N_'+str(config["NodeField"][1])+'_f_'+str(config["Frequency"])+'_b_'+str(config["BandWidth"])+'_'+config["MAC"]["protocol"]+'_'+config["Routing"]["Algorithm"]+'.txt'
+            f = open(filename,'w')
+
+            period.append([])
+            energy.append([])
+            packets.append([])
+            delay.append([])
+            offered_load.append([])
+            throughput.append([])
+            to.append([])
+            col.append([])
+            output_power.append([])
+            t_data.append([])
+
+            for i in range(0,1):
+                period[j].append(config["Period"])
+                energy_s = []
+                packets_s = []
+                delay_s = []            
+                col_s = []
+                offered_load_s = []
+                throughput_s = []
+                to_s = []
+
+                output_power_s = []
+                t_data_s = []
+                
+                for z in range(0,10):
+                    nodess = AUVSim.RunSimulation(config)
+                    nodes=[]
+                    for x in nodess:
+                        nodes.append(nodess[x])                
+
+                    energy_ss, packets_ss, delay_ss, col_ss = self.GetStat(nodes)
+                    offered_load_ss, throughput_ss = self.Throughput(nodes, config["SimulationDuration"])
+                    energy_s.append(energy_ss)
+                    packets_s.append(packets_ss)
+                    delay_s.append(delay_ss)
+                    col_s.append(col_ss)
+                    offered_load_s.append(offered_load_ss)
+                    throughput_s.append(throughput_ss)
+                    to_s.append(throughput_ss/offered_load_ss)
+
+                    output_power_ss = []
+                    for x in nodes:
+                        if x.physical_layer.max_output_power!=0:
+                            output_power_ss.append(x.physical_layer.max_output_power_used)
+
+                    output_power_s.append(max(output_power_ss))
+                    t_data_s.append(x.MACProtocol.t_data)
+
+                energy[j].append(self.Average(energy_s))
+                packets[j].append(self.Average(packets_s))
+                delay[j].append(self.Average(delay_s))
+                col[j].append(self.Average(col_s))
+                throughput[j].append(self.Average(throughput_s))
+                offered_load[j].append(self.Average(offered_load_s))
+                to[j].append(self.Average(to_s))
+                output_power[j].append(max(output_power_s))
+                t_data[j].append(self.Average(t_data_s))
+
+                # File recordings
+                record = str(config["Period"])+', '+str(delay[j][i])+', '+str(energy[j][i])+', '+str(offered_load[j][i])
+                record = record+', '+str(throughput[j][i])+', '+str(col[j][i])+', '+str(packets[j][i])+', '+str(output_power[j][i])+'\n'
+                f.write(record)
+
+            print (config["PHY"]["level2distance"], config["Frequency"], config["BandWidth"])
+            f.close() 
+    
+    def inicializaSimulacao(self,end_arquivo_config=None):
+        end_arquivo_config = sys.argv[1] if (len(sys.argv) == 2) else end_arquivo_config
+        if end_arquivo_config is None:
+            print('Endereço do arquivo de configuração NÃO INFORMADO. Nem no Argv e nem no Parâmetro')
+            exit(1)  
+        #
+        config_simulacao = AUVSim.ReadConfigFromFile(end_arquivo_config)
+        #
+        print('Inicializando Simulação')
+        nodess = AUVSim.RunSimulation(config_simulacao)
+        print('Simulação finalizada')
+        #
+        nodes = []
+        for node in nodess:
+            nodes.append(nodess[node]) 
+        
+        energy, packets, delay, col = self.GetStat(nodes)
+
+        print ("Energy consumption: ",energy)
+        print( "Total number of packets transmitted: ",packets)
+        print ("Average end to end delay: ",delay)
+        print ("Collisions: ",col)
+
+        # self.PlotScenario3D(nodes, config_simulacao)
+        # self.PlotConsumption(nodes)
+        # self.PlotDelay(nodes)
+        # self.PlotDelayHist(nodes)    
+        # pylab.show()  
+
+    def enviar_mensagem(self, str_mensagem, posicao_remetente, posicao_destinatario):        
+        #
+        self.config_rede_subaquatica.data_packet_length = len(str_mensagem.encoder('uft8'))
+        self.config_rede_subaquatica.posicao_node_destino = posicao_destinatario
+        self.config_rede_subaquatica.posicao_node_remente = posicao_remetente
+        #
+        print('Inicializando Simulação')
+        nodess = AUVSim.RunSimulation(self.config_rede_subaquatica.conf_rede_atual)
+        print('Simulação finalizada')
+        #
+        nodes = []
+        for node in nodess:
+            nodes.append(nodess[node]) 
+        
+        energy, packets, delay, col = self.GetStat(nodes)
+
+        print ("Energy consumption: ", energy)
+        print( "Total number of packets transmitted: ", packets)
+        print ("Average end to end delay: ", delay)
+        print ("Collisions: ", col)
+        delay = 0
+
+    @staticmethod
+    def inicializa_comunicacao():
+        nome_arquivo = '.\\ConfigComunicacaoBrov.conf'
+        # configuracaorede = ConfiguracaoRede()
+        brovcomunicacao = BrovComunicacao()
+        # cal = CalcularVelocidadeSomAgua()
+        brovcomunicacao.inicializaSimulacao(nome_arquivo)
+        # brovcomunicacao.ROU(nome_arquivo)
+
+if __name__ == "__main__":
+    nome_arquivo = '.\\ConfigComunicacaoBrov.conf'
+    BrovComunicacao.inicializa_comunicacao()
+
+
+

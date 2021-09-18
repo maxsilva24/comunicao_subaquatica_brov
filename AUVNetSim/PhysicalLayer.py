@@ -28,6 +28,7 @@ import math
 
 from copy import deepcopy
 
+print_log_console = False
 class PhysicalLayer():
 
     # Initialization of the layer
@@ -125,8 +126,8 @@ class PhysicalLayer():
 
     # Shows information on screen
     def PrintMessage(self, msg):
-        pass
-        #print "PHY (%s): %s" % (self.node.name, msg)
+        if print_log_console :
+            print ("PHY (%s): %s" % (self.node.name, msg))
 
     def __str__(self):
         return "I'm "+self.node.name    

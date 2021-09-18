@@ -61,7 +61,7 @@ defining a default transition.
 
 Noah Spurrier 20020822
 '''
-
+print_log_console = False
 class ExceptionFSM(Exception):
     '''This is the FSM Exception class.'''
     def __init__(self, value):
@@ -177,7 +177,8 @@ class FSM:
         '''
         self.input_symbol = input_symbol
         (action, next_state) = self.get_transition (self.input_symbol, self.current_state)
-        #print "%s(%s) -> %s" % (self.current_state, input_symbol, next_state)
+        if print_log_console:
+            print ("%s(%s) -> %s" % (self.current_state, input_symbol, next_state))
         self.current_state = next_state
 
         if action != None:

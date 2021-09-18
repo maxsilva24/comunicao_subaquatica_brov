@@ -22,7 +22,7 @@
 #
 ###########################################################################
 nodes_geo = {} # Contains all nodes' position - Only the sinks' position is needed
-debug = False
+print_log_console = False
 import math
 from priodict import priorityDictionary
 
@@ -208,27 +208,27 @@ class Static(SimpleRoutingTable):
             inside = False
 
             if rel_pos_item[0] < self.cone_radius:
-                if debug:
+                if print_log_console:
                     print 'Direct path is the best now'
                 next_hop_name = name_item
             else:
-                if debug:
+                if print_log_console:
                     print 'When trying to reach node', name_item
                 for i, j in self.nodes_rel_pos.iteritems():
-                    if debug:
+                    if print_log_console:
                         print 'Trying a path through', i, 'with angle', j[1], 'and distance', j[0]
                     if j[1] < ( (rel_pos_item[1]+self.cone_angle/2.0) ):
                         if j[1] > ( (rel_pos_item[1]-self.cone_angle/2.0) ):
                             if inside:
                                 if j[0] > self.cone_radius:
-                                    if debug:
+                                    if print_log_console:
                                         print 'case 1'
                                     continue
 
                                 if j[0] > next_hop_rel_pos[0]:
                                     next_hop_name = i
                                     next_hop_rel_pos = j
-                                    if debug:
+                                    if print_log_console:
                                         print 'case 2'                                
 
                             else:
@@ -236,12 +236,12 @@ class Static(SimpleRoutingTable):
                                     inside = True
                                     next_hop_name = i
                                     next_hop_rel_pos = j
-                                    if debug:
+                                    if print_log_console:
                                         print 'case 3'
                                 elif j[0] < next_hop_rel_pos[0]:
                                     next_hop_name = i
                                     next_hop_rel_pos = j
-                                    if debug:
+                                    if print_log_console:
                                         print 'case 4'
 
             self[name_item] = next_hop_name
@@ -250,7 +250,7 @@ class Static(SimpleRoutingTable):
         for i in self:
             while self[i] != self[self[i]]:
                 self[i] = self[self[i]]
-                if debug:
+                if print_log_console:
                     print i, self[i]
 
         # Check if the power level needed for each next hop allows us to directly reaching destination, even being out of the cone
@@ -258,7 +258,7 @@ class Static(SimpleRoutingTable):
             if self.GetLevel(nodes_geo[i])!=None and self.GetLevel(nodes_geo[i])<=self.GetLevel(nodes_geo[self[i]]):
                 self[i]=i
 
-        if debug:
+        if print_log_console:
             print i, nodes_geo[i], self[i], nodes_geo[self[i]], self.node.GetCurrentPosition().distanceto(nodes_geo[self[i]])
             
 
@@ -291,14 +291,14 @@ class Static(SimpleRoutingTable):
             inside = False
 
             if rel_pos_item[0] < self.cone_radius:
-                if debug:
+                if print_log_console:
                     print 'Direct path is the best now'
                 next_hop_name = name_item
             else:
-                if debug:
+                if print_log_console:
                     print 'When trying to reach node', name_item, rel_pos_item
                 for i, j in self.nodes_rel_pos.iteritems():
-                    if debug:
+                    if print_log_console:
                         print 'Trying a path through', i, 'with angle', j[1], 'and distance', j[0]
 
                     if j[1] < ( (rel_pos_item[1]+90.0) ):
@@ -313,7 +313,7 @@ class Static(SimpleRoutingTable):
                                 if recep_angle > ( (rel_pos_item[2]-self.cone_angle/2.0) ):
                                     if inside:
                                         if j[0] > self.cone_radius:
-                                            if debug:
+                                            if print_log_console:
                                                 print 'case 1'
                                             continue
 
@@ -324,7 +324,7 @@ class Static(SimpleRoutingTable):
                                                 next_hop_rel_pos = j
                                                 next_dist = nodes_geo[i].distanceto(nodes_geo[next_hop_name])
                                                 next_angle = recep_angle
-                                                if debug:
+                                                if print_log_console:
                                                     print 'case 2'                                
 
                                     else:
@@ -334,14 +334,14 @@ class Static(SimpleRoutingTable):
                                             next_hop_rel_pos = j
                                             next_dist = nodes_geo[i].distanceto(nodes_geo[next_hop_name])
                                             next_angle = recep_angle                                            
-                                            if debug:
+                                            if print_log_console:
                                                 print 'case 3'
                                         elif j[0] < next_hop_rel_pos[0]:
                                             next_hop_name = i
                                             next_hop_rel_pos = j
                                             next_dist = nodes_geo[i].distanceto(nodes_geo[next_hop_name])
                                             next_angle = recep_angle                                           
-                                            if debug:
+                                            if print_log_console:
                                                 print 'case 4'
 
             self[name_item] = next_hop_name
@@ -351,7 +351,7 @@ class Static(SimpleRoutingTable):
         for i in self:
             while self[i] != self[self[i]]:
                 self[i] = self[self[i]]
-                if debug:
+                if print_log_console:
                     print i, self[i]
 
         # Check if the power level needed for each next hop allows us to directly reaching destination, even being out of the cone
@@ -359,7 +359,7 @@ class Static(SimpleRoutingTable):
             if self.GetLevel(nodes_geo[i])!=None and self.GetLevel(nodes_geo[i])<=self.GetLevel(nodes_geo[self[i]]):
                 self[i]=i
 
-        if debug:
+        if print_log_console:
             print i, nodes_geo[i], self[i], nodes_geo[self[i]], self.node.GetCurrentPosition().distanceto(nodes_geo[self[i]])
 
 
@@ -381,7 +381,7 @@ class Static(SimpleRoutingTable):
                     end = P[end]
             Path.reverse()
             self[i] = Path[1]
-            if debug:
+            if print_log_console:
                 print i, self[i]
 
     def BuildGraph(self):
@@ -494,8 +494,9 @@ class Static(SimpleRoutingTable):
 
 
     def PrintMessage(self, msg):
-        pass
-        #print "Static (%s): %s" % (self.node.name, msg)
+        # pass
+        if print_log_console:
+            print ("Static (%s): %s" % (self.node.name, msg))
 
 
 class FBR(SimpleRoutingTable):

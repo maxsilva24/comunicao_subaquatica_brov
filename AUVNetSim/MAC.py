@@ -28,6 +28,8 @@ import SimPy.Simulation as Sim
 from FSM import FSM
 import random
 
+print_log_console = False
+
 def SetupMAC(node, config):
     if config["protocol"] == "DACAP":
         return DACAP(node, config)
@@ -253,8 +255,8 @@ class ALOHA:
         
 
     def PrintMessage(self, msg):
-        pass
-        #print "ALOHA (%s): %s at t=" % (self.node.name, msg), Sim.now(), self.fsm.input_symbol, self.fsm.current_state
+        if print_log_console:
+            print ("ALOHA (%s): %s at t=" % (self.node.name, msg), Sim.now(), self.fsm.input_symbol, self.fsm.current_state)
 
 
 class ALOHA4FBR(ALOHA):
