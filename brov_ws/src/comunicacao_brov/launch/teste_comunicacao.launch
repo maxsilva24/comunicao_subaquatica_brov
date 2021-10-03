@@ -1,3 +1,5 @@
 <launch>
-    <node name="no_comunicacao_brov" pkg="comunicacao_brov" type="no_comunicacao_brov.py" output="screen" />
+    <arg name="coordenadada_origem_teste" type='geometry_msgs/Twist' value="[2.0, 0.0, 0.0]" />
+    <arg name="coordenadada_destino_teste" default="0.0" />
+    <node name="no_comunicacao_brov" pkg="comunicacao_brov" type="no_comunicacao_brov.py" output="screen" args="$(arg coordenadada_origem_teste) $(arg coordenadada_destino_teste)" />    
 </launch> 

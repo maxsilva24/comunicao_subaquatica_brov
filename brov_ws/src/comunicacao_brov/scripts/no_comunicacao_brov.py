@@ -1,18 +1,25 @@
 #!/usr/bin/env python2.7
+# -*- coding: UTF-8 -*-
 
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import String, Empty
 from geometry_msgs.msg import Twist
+# from std_srvs.srv import Empty
 from BROV_Comunicacao import CalcularVelocidadeSomAgua, TipoEquacao
 from tqdm import tqdm
 import time
 
 class NoComunicacaoBrov():
     NOME_NO_CALCULA_VELOCIDADE_SOM_AGUA = 'calcular_velocidade_som_agua'
+    NOME_TOPIC_GERA_DELAY ='/brov/gera_delay'
 
     def __init__(self):
+        self.__inicializa_no()
+
+    def __inicializa_no(self):
         rospy.init_node(self.NOME_NO_CALCULA_VELOCIDADE_SOM_AGUA, anonymous=False)
-    
+        self.pub_no = rospy.Publisher(self.NOME_TOPIC_GERA_DELAY, Twist, queue_size=10 )
+        
     def gerar_delay_tramissao(self, coordenadada_origem, coordenadada_destino):
         ##*********************Configuração da Transmissao*********************
         TIPO_EQUACAO =  TipoEquacao.MACKENZIE
@@ -40,21 +47,24 @@ class NoComunicacaoBrov():
         delay_comunicacao =  calcula_velocidade_som.calcular_delay_transmissao(coordenadada_origem, coordenadada_destino)
         rospy.loginfo(str.format('Executando Delay: {0}', delay_comunicacao))
         for i in tqdm(range(int (delay_comunicacao)), desc=str.format('Executando Delay (Tempo:. {0})', delay_comunicacao)):
-            time.sleep(FREQUENCIA_TEMPO_ESPERA)
+            # time.sleep(FREQUENCIA_TEMPO_ESPERA)
+            rospy.sleep(FREQUENCIA_TEMPO_ESPERA)
+        
+        self.pub_no.publish(delay_comunicacao)
         #
         # https://roboticsbackend.com/ros-rate-roscpy-roscpp/
         # rate =  rospy.Rate(delay)
         #
         # while not rospy.is_shutdown():
         #     rospy.loginfo(str.format('Delay: {0}', delay))
-        # rate.sleep()
+        #     rate.sleep()
 
 
 
 def main(argv):
     no_comu = NoComunicacaoBrov()
-    coordenadada_origem_teste  = (2,3,5)
-    coordenadada_destino_teste = (3,5,7)
+    # coordenadada_origem_teste  = (2,3,5)
+    # coordenadada_destino_teste = (3,5,7)
     # coordenadada_origem_teste  = Twist()
     # coordenadada_origem_teste.linear.x = 2
     # coordenadada_origem_teste.linear.y = 3
@@ -63,9 +73,13 @@ def main(argv):
     # coordenadada_destino_teste.linear.x = 3
     # coordenadada_destino_teste.linear.y = 5
     # coordenadada_destino_teste.linear.z = 7
+    coordenadada_origem_teste  = argv[1]
+    coordenadada_destino_teste = argv[2]
     no_comu.gerar_delay_tramissao(coordenadada_origem_teste, coordenadada_destino_teste)
 
 if __name__ == "__main__":
-    import sys
-    main(sys.argv)
-    
+    try:
+        import sys
+        main(sys.argv)        
+    except rospy.ROSInterruptException:
+        pass
