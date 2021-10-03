@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/max/catkin_ws/devel/include/**",
+                "/home/max/hector_quadrotor_tutorial/devel/include/**",
+                "/opt/ros/melodic/include/**",
+                "/home/max/comunicao_subaquatica_brov/brov_ws/src/comunicacao_brov/include/**",
+                "/home/max/catkin_ws/src/drone_middleware/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_gazebo/hector_gazebo_plugins/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_gazebo/hector_gazebo_thermal_camera/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_slam/hector_geotiff/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_slam/hector_map_tools/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_slam/hector_mapping/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_slam/hector_marker_drawing/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_localization/hector_pose_estimation/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_localization/hector_pose_estimation_core/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_quadrotor_actions/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_quadrotor_controller_gazebo/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_quadrotor_gazebo_plugins/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_quadrotor_interface/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_quadrotor_model/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_quadrotor_pose_estimation/include/**",
+                "/home/max/catkin_ws/src/hector_quadrotor_tutorial/src/hector_quadrotor/hector_uav_msgs/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

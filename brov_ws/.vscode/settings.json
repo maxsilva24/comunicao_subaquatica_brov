@@ -1,0 +1,13 @@
+{
+    "cmake.sourceDirectory": "${workspaceFolder}/src",
+    "python.autoComplete.extraPaths": [
+        "/home/max/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/home/max/hector_quadrotor_tutorial/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/max/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/home/max/hector_quadrotor_tutorial/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages"
+    ]
+}

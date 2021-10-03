@@ -1,0 +1,3 @@
+<launch>
+    <node name="no_comunicacao_brov" pkg="comunicacao_brov" type="no_comunicacao_brov.py" output="screen" />
+</launch> 

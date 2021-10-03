@@ -2,13 +2,13 @@
 # -*- coding: UTF-8 -*-
 from logging import exception
 import unittest
-from .brov_comunicacao  import CalcularVelocidadeSomAgua, ConfiguracaoRede, TipoEquacao
+from .BROV_Comunicacao  import CalcularVelocidadeSomAgua, TipoEquacao
 
 class Test_Comunicacao(unittest.TestCase):
     
     def setUp(self):
         self.calcula_velocidade_som = CalcularVelocidadeSomAgua()
-        self.configuracao_rede = ConfiguracaoRede()
+        # self.configuracao_rede = ConfiguracaoRede()
         self.config_padrao = self.gerar_config_padrao()
 
     def gerar_config_padrao(self):
