@@ -12,5 +12,6 @@
     "python.testing.pytestArgs": [
         "."
     ],
-    "python.formatting.provider": "yapf"
+    "python.formatting.provider": "yapf",
+    "ros.distro": "foxy"
 }
