@@ -1,8 +1,12 @@
 # Comunicao Subaquática Brov
 Este projeto trata arquivos de apoio de simulação de comunicação subaquática para o BROV, o node que calcula o delay foi feito no ROS1 e ROS2
+
 Todas as instruções abaixo, entende-se que o ROS2 esta instalado com o python 3 e o ROS14 com O python 2.7
+
 Para instalar no **Linux** siga as instruções na pagina: https://docs.ros.org/.
+
 Para instalar no **Windows** siga as instruções na pagina: https://ms-iot.github.io/ROSOnWindows/GettingStarted/Setup.html 
+
 Instalar o ROS2 com  **docker** siga as instruções na pagina: https://www.allisonthackston.com/articles/vscode-docker-ros2.html 
 
 ## Passos para Rodar o ROS2
