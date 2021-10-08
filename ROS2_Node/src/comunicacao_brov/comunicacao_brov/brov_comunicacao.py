@@ -385,7 +385,7 @@ class CalcularVelocidadeSomAgua():
         # 
         velocidade_som = self.calcular_velocidade_som(tipoequacao, temperatura, salinidade, pressao, profundidade, latitude)
         distancia = self.calcular_distancia_3D(coordenadada_origem,coordenadada_destino)
-        delay = velocidade_som * distancia
+        delay = velocidade_som / distancia
         #
         return delay 
 

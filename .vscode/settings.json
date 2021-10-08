@@ -1,3 +1,4 @@
 {
-    "ros.distro": "foxy"
+    "ros.distro": "foxy",
+    "cmake.sourceDirectory": "${workspaceFolder}/ROS1_Node/brov_ws/src/comunicacao_brov"
 }

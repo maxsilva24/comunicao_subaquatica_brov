@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import rospy
-from std_msgs.msg import String, Empty
+from std_msgs.msg import String, Empty, Float32
 from geometry_msgs.msg import Twist
 # from std_srvs.srv import Empty
 from BROV_Comunicacao import CalcularVelocidadeSomAgua, TipoEquacao
@@ -18,8 +18,13 @@ class NoComunicacaoBrov():
 
     def __inicializa_no(self):
         rospy.init_node(self.NOME_NO_CALCULA_VELOCIDADE_SOM_AGUA, anonymous=False)
-        self.pub_no = rospy.Publisher(self.NOME_TOPIC_GERA_DELAY, Twist, queue_size=10 )
-        
+        self.pub_no = rospy.Publisher(self.NOME_TOPIC_GERA_DELAY, Float32, queue_size=10 )
+    
+    def validar_valores_parametros(self, argv):
+        # print(f'coordenadada_origem Parametro {coordenadada_origem.type_}')
+        # print(f'coordenadada_destino Parametro {coordenadada_destino.type_}')
+        return True 
+
     def gerar_delay_tramissao(self, coordenadada_origem, coordenadada_destino):
         ##*********************Configuração da Transmissao*********************
         TIPO_EQUACAO =  TipoEquacao.MACKENZIE
@@ -63,19 +68,13 @@ class NoComunicacaoBrov():
 
 def main(argv):
     no_comu = NoComunicacaoBrov()
-    # coordenadada_origem_teste  = (2,3,5)
-    # coordenadada_destino_teste = (3,5,7)
-    # coordenadada_origem_teste  = Twist()
-    # coordenadada_origem_teste.linear.x = 2
-    # coordenadada_origem_teste.linear.y = 3
-    # coordenadada_origem_teste.linear.z = 5
-    # coordenadada_destino_teste = Twist()   
-    # coordenadada_destino_teste.linear.x = 3
-    # coordenadada_destino_teste.linear.y = 5
-    # coordenadada_destino_teste.linear.z = 7
-    coordenadada_origem_teste  = argv[1]
-    coordenadada_destino_teste = argv[2]
+    if no_comu.validar_valores_parametros(argv) == False:
+        rospy.ROSInterruptException
+    #
+    coordenadada_origem_teste  = tuple(map(float, argv[1:4]))
+    coordenadada_destino_teste = tuple(map(float, argv[4:7]))
     no_comu.gerar_delay_tramissao(coordenadada_origem_teste, coordenadada_destino_teste)
+    
 
 if __name__ == "__main__":
     try:
