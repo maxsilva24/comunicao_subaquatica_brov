@@ -5,13 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "ROS: Attach",
             "type": "ros",
             "request": "attach"
@@ -20,7 +13,7 @@
             "name": "ROS: Launch",
             "type": "ros",
             "request": "launch",
-            "target": "${workspaceFolder}\\src\\comunicacao_brov\\launch\\teste_comunicacao_launch.py",
+            "target": "${workspaceFolder}\\ROS2_Node\\src\\comunicacao_brov\\launch\\teste_comunicacao_launch.py",
         }
     ]
 }
